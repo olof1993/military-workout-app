@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Military Workout App</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#020617">
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      background:#020617;
+      color:#e5e7eb;
+      margin:0;
+      padding:16px;
+    }
+    h1, h2 { color:#f8fafc; margin-bottom:8px; }
+    .card {
+      background:#020617;
+      border:1px solid #1e293b;
+      border-radius:18px;
+      padding:16px;
+      margin-bottom:16px;
+      box-shadow:0 10px 30px rgba(0,0,0,.4);
+    }
+    label { display:block; margin-top:10px; font-size:14px; }
+    input, button {
+      width:100%;
+      padding:12px;
+      margin-top:6px;
+      border-radius:12px;
+      border:none;
+      font-size:16px;
+    }
+    input {
+      background:#020617;
+      color:#e5e7eb;
+      border:1px solid #1e293b;
+    }
+    button {
+      background:#2563eb;
+      color:white;
+      font-weight:600;
+      margin-top:14px;
+    }
+    .exercise {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:10px;
+      padding:10px;
+      border:1px solid #1e293b;
+      border-radius:12px;
+    }
+    .exercise input { width:70px; }
+    small { color:#94a3b8; }
+  </style>
+</head>
+<body>
+
+<h1>🪖 Military Workout</h1>
+
+<div class="card">
+  <h2>Profil</h2>
+  <label>Startvikt (kg)
+    <input id="startWeight" type="number" step="0.1" />
+  </label>
+  <label>Målvikt (kg)
+    <input id="goalWeight" type="number" step="0.1" />
+  </label>
+  <label>Progression per månad (+reps)
+    <input id="progression" type="number" value="5" />
+  </label>
+  <button onclick="saveProfile()">Spara profil</button>
+</div>
+
+<div class="card">
+  <h2>Dagens träningspass</h2>
+  <div id="workout"></div>
+  <button onclick="completeWorkout()">Markera passet som klart</button>
+</div>
+
+<div class="card">
+  <h2>Veckovis vikt</h2>
+  <label>Ny vikt (kg)
+    <input id="weeklyWeight" type="number" step="0.1" />
+  </label>
+  <button onclick="logWeight()">Logga vikt</button>
+  <div id="weightLog"></div>
+</div>
+
+<script>
+const baseExercises = {
+  "Armhävningar":12,
+  "Knäböj":20,
+  "Plankan (sek)":30,
+  "Utfall/ben":10,
+  "Burpees":8
+};
+
+function monthIndex(){
+  const start = new Date(localStorage.getItem('startDate'));
+  const now = new Date();
+  return Math.floor((now - start) / (1000*60*60*24*30));
+}
+
+function saveProfile(){
+  localStorage.setItem('startWeight', startWeight.value);
+  localStorage.setItem('goalWeight', goalWeight.value);
+  localStorage.setItem('progression', progression.value);
+  localStorage.setItem('startDate', new Date());
+  alert('Profil sparad');
+  renderWorkout();
+}
+
+function renderWorkout(){
+  const prog = Number(localStorage.getItem('progression')||5);
+  const month = monthIndex();
+  workout.innerHTML = '';
+  Object.entries(baseExercises).forEach(([name, reps])=>{
+    const target = reps + month*prog;
+    workout.innerHTML += `
+      <div class="exercise">
+        <span>${name}</span>
+        <input type="number" value="${target}" />
+        <input type="checkbox" />
+      </div>`;
+  });
+}
+
+function completeWorkout(){
+  alert('Bra jobbat! Passet är klart 💪');
+}
+
+function logWeight(){
+  const log = JSON.parse(localStorage.getItem('weights')||'[]');
+  log.push({date:new Date().toLocaleDateString(), weight:weeklyWeight.value});
+  localStorage.setItem('weights', JSON.stringify(log));
+  renderWeights();
+}
+
+function renderWeights(){
+  const log = JSON.parse(localStorage.getItem('weights')||'[]');
+  weightLog.innerHTML = log.map(w=>`<p>${w.date}: ${w.weight} kg</p>`).join('');
+}
+
+renderWorkout();
+renderWeights();
+</script>
+
+</body>
+</html>
